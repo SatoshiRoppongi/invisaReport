@@ -46,7 +46,7 @@ def get_start_point_this_day(ut):
     sheet_start_point_time = datetime.datetime.strptime(sheet_start_point_str, '%Y-%m-%d %H:%M:%S')
     # datetime to unixtime
     sheet_start_point_ut = sheet_start_point_time.timestamp()
-    day_count = math.ceil((ut - sheet_start_point_ut)/ DAYSEC)
+    day_count = math.floor((ut - sheet_start_point_ut)/ DAYSEC)
 
     start_point_this_day = sheet_start_point_ut + DAYSEC * (day_count)
 
@@ -65,7 +65,7 @@ def get_point(ut):
     sheet_start_point_time = datetime.datetime.strptime(sheet_start_point_str, '%Y-%m-%d %H:%M:%S')
     # datetime to unixtime
     sheet_start_point_ut = sheet_start_point_time.timestamp()
-    day_count = math.ceil((ut - sheet_start_point_ut)/ DAYSEC)
+    day_count = math.floor((ut - sheet_start_point_ut)/ DAYSEC)
     line_x = PUL[0] + day_count * CW + CW / 2
 
     start_point_this_day = get_start_point_this_day(ut)
@@ -76,8 +76,7 @@ def get_point(ut):
 
     return (line_x, line_y)
 
-pivot_point = 0
-last_period_point_ut = 0
+last_period_point_ut = periods[0]['start']
 for period in periods:
 
     # remove aligner start point 
@@ -85,16 +84,14 @@ for period in periods:
     # remove aligner end point
     end_point_ut = period['end']
 
-    if get_start_point_this_day(period['start']) != pivot_point:
-        print(get_point(get_start_point_this_day(period['start'])))
-        end_of_day = get_start_point_this_day(last_period_point_ut) + DAYSEC
-        draw.line((get_point(last_period_point_ut), get_point(end_of_day)), fill=(255, 0, 0),  width=20)
-        draw.line((get_point(pivot_point), start_point), fill=(0, 255, 0),  width=20)
-        pivot_point = get_start_point_this_day(period['start'])
+    draw.line((get_point(last_period_point_ut), start_point), fill=(0, 0, 255),  width=10)
 
-    draw.line((get_point(last_period_point_ut), start_point), fill=(0, 0, 255),  width=20)
-
-    last_period_point_ut = end_point_ut
+    print(start_point[0], get_point(last_period_point_ut)[0])
+    if start_point[0] == get_point(last_period_point_ut)[0]:
+        last_period_point_ut = end_point_ut
+    else:
+        last_period_point_ut = get_start_point_this_day(period['start'])
+       # draw.line((get_point(end_point_ut), get_point(last_period_point_ut + DAYSEC - 1)), fill=(255, 0, 0),  width=20)
 
 
 im.save('out.jpg', quality=95)
