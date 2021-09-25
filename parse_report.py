@@ -77,6 +77,9 @@ def get_point(ut):
     return (line_x, line_y)
 
 last_period_point_ut = periods[0]['start']
+i=0
+
+print(len(periods))
 for period in periods:
 
     # remove aligner start point 
@@ -84,14 +87,15 @@ for period in periods:
     # remove aligner end point
     end_point_ut = period['end']
 
-    draw.line((get_point(last_period_point_ut), start_point), fill=(0, 0, 255),  width=10)
+    line_start = get_point(last_period_point_ut)
+    line_end = start_point
+    if line_start[0] != line_end[0]:
+        line_end = get_point(get_start_point_this_day(last_period_point_ut) + DAYSEC - 1)
+        additional_line_start = get_point(get_start_point_this_day(period['start']))
+        draw.line((additional_line_start, start_point), fill=(0, 0, 255),  width=10)
 
-    print(start_point[0], get_point(last_period_point_ut)[0])
-    if start_point[0] == get_point(last_period_point_ut)[0]:
-        last_period_point_ut = end_point_ut
-    else:
-        last_period_point_ut = get_start_point_this_day(period['start'])
-       # draw.line((get_point(end_point_ut), get_point(last_period_point_ut + DAYSEC - 1)), fill=(255, 0, 0),  width=20)
+    draw.line((line_start, line_end), fill=(0, 0, 255),  width=10)
 
+    last_period_point_ut = end_point_ut
 
 im.save('out.jpg', quality=95)
