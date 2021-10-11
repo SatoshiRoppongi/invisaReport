@@ -1,6 +1,6 @@
 import json
 import datetime
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 import sys
 import math
 
@@ -35,6 +35,8 @@ periods = data_dict['state']['timer']['periods']
 
 im = Image.open('./basesheet.jpg')
 draw = ImageDraw.Draw(im)
+
+#font = ImageFont.truetype("arial.ttf", 64)
 
 def get_start_point_this_day(ut):
     # unixtime to datetime, datetime to string
@@ -77,16 +79,32 @@ def get_point(ut):
     return (line_x, line_y)
 
 last_period_point_ut = periods[0]['start']
-i=0
 
-print(len(periods))
+out_time_sec = 0
+
+current_month = datetime.datetime.fromtimestamp(last_period_point_ut).strftime('%Y-%m')
+
+im = Image.open('./basesheet.jpg')
+draw = ImageDraw.Draw(im)
+
+
 for period in periods:
+    start_ut = period['start']
+    check_month = datetime.datetime.fromtimestamp(start_ut).strftime('%Y-%m')
+    if current_month != check_month:
+
+        im.save('out_{month}.jpg'.format(month=current_month), quality=95)
+        im = Image.open('./basesheet.jpg')
+        draw = ImageDraw.Draw(im)
+        current_month = check_month
+
+    out_time_sec += period['end'] - period['start']
 
     # remove aligner start point 
     start_point = get_point(period['start'])
     # remove aligner end point
     end_point_ut = period['end']
-
+    
     line_start = get_point(last_period_point_ut)
     line_end = start_point
     if line_start[0] != line_end[0]:
@@ -94,8 +112,16 @@ for period in periods:
         additional_line_start = get_point(get_start_point_this_day(period['start']))
         draw.line((additional_line_start, start_point), fill=(0, 0, 255),  width=10)
 
+        on_time_sec = DAYSEC - out_time_sec
+        td = datetime.timedelta(seconds=on_time_sec)
+        print(td)
+        text = str(td)[0:6]
+        draw.text((start_point[0], PDL[1]), text, fill=(0,0,255))
+
+        out_time_sec = 0
+
     draw.line((line_start, line_end), fill=(0, 0, 255),  width=10)
 
     last_period_point_ut = end_point_ut
 
-im.save('out.jpg', quality=95)
+im.save('out_{month}.jpg'.format(month=current_month), quality=95)
