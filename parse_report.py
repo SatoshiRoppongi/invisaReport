@@ -91,12 +91,6 @@ draw = ImageDraw.Draw(im)
 for period in periods:
     start_ut = period['start']
     check_month = datetime.datetime.fromtimestamp(start_ut).strftime('%Y-%m')
-    if current_month != check_month:
-
-        im.save('out_{month}.jpg'.format(month=current_month), quality=95)
-        im = Image.open('./basesheet.jpg')
-        draw = ImageDraw.Draw(im)
-        current_month = check_month
 
     out_time_sec += period['end'] - period['start']
 
@@ -107,20 +101,35 @@ for period in periods:
     
     line_start = get_point(last_period_point_ut)
     line_end = start_point
+    # change day
     if line_start[0] != line_end[0]:
-        line_end = get_point(get_start_point_this_day(last_period_point_ut) + DAYSEC - 1)
+        #line end point of the last day
+        line_end = get_point(get_start_point_this_day(last_period_point_ut) + DAYSEC -1 )
+        #line start point of the day
         additional_line_start = get_point(get_start_point_this_day(period['start']))
+        #draw line from start point of the day to the pon
         draw.line((additional_line_start, start_point), fill=(0, 0, 255),  width=10)
 
         on_time_sec = DAYSEC - out_time_sec
         td = datetime.timedelta(seconds=on_time_sec)
         print(td)
-        text = str(td)[0:6]
+        # text = str(td)[0:6]
+        # draw.text((start_point[0], PDL[1]), text, fill=(0,0,255))
+        text = str(line_start)
         draw.text((start_point[0], PDL[1]), text, fill=(0,0,255))
 
         out_time_sec = 0
 
+    
+
     draw.line((line_start, line_end), fill=(0, 0, 255),  width=10)
+
+    # change month
+    if current_month != check_month:
+        im.save('out_{month}.jpg'.format(month=current_month), quality=95)
+        im = Image.open('./basesheet.jpg')
+        draw = ImageDraw.Draw(im)
+        current_month = check_month
 
     last_period_point_ut = end_point_ut
 
