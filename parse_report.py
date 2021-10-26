@@ -26,15 +26,16 @@ HEIGHT = 1918
 # second a day
 DAYSEC = 86400
 
+# correct seconds
+## time criteria is 5:30 so,it has to be corrected
+CORRSEC = 19800
+
 with open(org_data) as f:
    raw_data = f.read()
 
 data_dict = json.loads(raw_data)
 
 periods = data_dict['state']['timer']['periods']
-
-im = Image.open('./basesheet.jpg')
-draw = ImageDraw.Draw(im)
 
 #font = ImageFont.truetype("arial.ttf", 64)
 
@@ -59,7 +60,7 @@ def get_point(ut):
     get axis from unixtime
     '''
     # unixtime to datetime, datetime to string
-    date_str = datetime.datetime.fromtimestamp(ut).strftime('%Y-%m-%d')
+    date_str = datetime.datetime.fromtimestamp(ut - CORRSEC).strftime('%Y-%m-%d')
     YYYY = date_str.split('-')[0]
     MM = date_str.split('-')[1]
     sheet_start_point_str = '{YYYY}-{MM}-01 05:30:00'.format(YYYY=YYYY, MM=MM)
@@ -68,7 +69,8 @@ def get_point(ut):
     # datetime to unixtime
     sheet_start_point_ut = sheet_start_point_time.timestamp()
     day_count = math.floor((ut - sheet_start_point_ut)/ DAYSEC)
-    line_x = PUL[0] + day_count * CW + CW / 2
+    line_x = PUL[0] + day_count * CW  + CW / 2
+    # line_x = PUL[0] + day_count * CW + CW / 2
 
     start_point_this_day = get_start_point_this_day(ut)
     ut_from_start = ut - start_point_this_day
